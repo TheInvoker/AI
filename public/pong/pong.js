@@ -7,11 +7,6 @@ var balInfo = {};
 var startTime = new Date();
 var trainingDB = [];
 
-setInterval(function() {
-	scores = [0, 0];
-	startTime = new Date();
-}, 1000 * 60);
-
 
 // NN
 var myNetwork = null;
@@ -371,6 +366,9 @@ socket.on('get_brain', function(brainExtract){
 	if (firstTime) {
 		resetBoardData();
 		setInterval(gameLoop, 0);
+	} else {
+		scores = [0, 0];
+		startTime = new Date();
 	}
 });
 
