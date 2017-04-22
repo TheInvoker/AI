@@ -2,32 +2,13 @@ var express = require('express');
 var https = require("https");
 var fse = require("fs-extra");
 var synaptic = require('synaptic');
+var bodyParser = require('body-parser');
 
-// SET UP SERVER
+// INFO
 
-var app = express();
+var totalItemsTrained = 0;
 var root = __dirname + '/public';
-
-app.use(express.static(root));
-
-app.get('/', function (req, res) {
-	var dest = 'index.html';
-	res.sendFile(dest, { root: root + "/pong" });
-});
-
-
-var privateKey  = fse.readFileSync('sslcert/key.pem', 'utf8');
-var certificate = fse.readFileSync('sslcert/cert.pem', 'utf8');
-var credentials = {key: privateKey, cert: certificate};
-
-var httpsServer = https.createServer(credentials, app);
-httpsServer.listen(process.env.PORT || 3000, function () {
-	var host = httpsServer.address().address;
-	var port = httpsServer.address().port;
-
-	console.log('AI started at https://%s:%s', host, port);
-});
-
+	
 // SET UP NEURAL NETS
 
 var learningRate = .3;
@@ -50,7 +31,7 @@ fse.exists(pathToBrain, function(exists) {
 			console.log("Loaded brain!");
 			
 			runSave();
-			setUpSockets();
+			setUpServer();
 		});
     } else {
 		console.log("Creating brain!");
@@ -74,7 +55,7 @@ fse.exists(pathToBrain, function(exists) {
 		hiddenLayer2.neurons().map(function(x) { x.squash = Neuron.squash.TANH; });
 		
 		runSave();
-		setUpSockets();
+		setUpServer();
 	}
 });
 
@@ -90,39 +71,47 @@ function runSave() {
 	}, 1000 * 60);
 }
 
+// SET UP SERVER
 
-// INFO
+function setUpServer() {
+	var app = express();
 
-var totalItemsTrained = 0;
+	app.use(express.static(root));
+	app.use(bodyParser.urlencoded({ extended: false }))
 
-// SET UP SOCKETS
-
-function setUpSockets() {
-	var io = require('socket.io').listen(httpsServer);
-	io.on('connection', function(socket){
-		console.warn("User connected...");
-
-		socket.emit('get_brain', myNetwork.toJSON());
-		console.log('Sent master brain to client!');
-		
-		socket.on('upload_knowledge', function(array) {
-			for(var i=0; i<array.length; i+=1) {
-				var item = array[i];
-				myNetwork.activate([item[0], item[1]]);
-				myNetwork.propagate(learningRate, [item[2]]);
-			}
-			
-			totalItemsTrained += array.length;
-			console.log('Trained on client knowledge! ' + array.length + ' items, and in total ' + totalItemsTrained);
-		});
-		
-		socket.on('disconnect', function() {
-			console.warn("User left...");
-		});
+	app.get('/', function (req, res) {
+		var dest = 'index.html';
+		res.sendFile(dest, { root: root + "/pong" });
 	});
-	
-	setInterval(function() {
-		io.emit('get_brain', myNetwork.toJSON());
-		console.log('Sent master brain to everyone!');
-	}, 1000 * 60);
+	app.post('/get_brain', function (req, res) {
+		res.end(JSON.stringify(myNetwork.toJSON()));
+		console.log('Sent master brain to a client!');
+	});
+	app.post('/train_and_get_brain', function (req, res) {
+		var data = req.body.data;
+		var array = JSON.parse(data);
+		for(var i=0; i<array.length; i+=1) {
+			var item = array[i];
+			myNetwork.activate([item[0], item[1]]);
+			myNetwork.propagate(learningRate, [item[2]]);
+		}
+		totalItemsTrained += array.length;
+		console.log('Trained on client knowledge! ' + array.length + ' items, and in total ' + totalItemsTrained);
+		res.end(JSON.stringify(myNetwork.toJSON()));
+		console.log('Sent master brain to a client!');
+	});
+
+
+
+	var privateKey  = fse.readFileSync('sslcert/key.pem', 'utf8');
+	var certificate = fse.readFileSync('sslcert/cert.pem', 'utf8');
+	var credentials = {key: privateKey, cert: certificate};
+
+	var httpsServer = https.createServer(credentials, app);
+	httpsServer.listen(process.env.PORT || 3000, function () {
+		var host = httpsServer.address().address;
+		var port = httpsServer.address().port;
+
+		console.log('AI started at https://%s:%s', host, port);
+	});
 }

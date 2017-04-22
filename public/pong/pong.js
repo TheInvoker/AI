@@ -186,10 +186,6 @@ function moveBall() {
 			if (ball.angle < 0) ball.angle = 360+ball.angle;
 		}
 		
-		if (balInfo.hasOwnProperty('y')) {
-			trainingDB.push([balInfo.y/game_board.height, balInfo.angle/360, ball.y/game_board.height]);
-		}
-		
 		return;
 	} else {
 		ball.o_angle = ball.angle;
@@ -354,25 +350,42 @@ $(document).keydown(function(e) {
 
 
 
-// SOCKET
+// SERVER
 
-var socket = io();
+function getBrain(onSuccess) {
+	$.ajax({
+		url: '/get_brain',
+		type: 'POST',
+		error: function(jqXHR, textStatus, errorThrown) {
+			alert('An error has occurred');
+		},
+		success: function(data) {
+			myNetwork = Network.fromJSON(JSON.parse(data));
+			onSuccess();
+		}
+	});
+}
 
-socket.on('get_brain', function(brainExtract){
-	var firstTime = myNetwork == null;
-	
-	myNetwork = Network.fromJSON(brainExtract);
-	
-	if (firstTime) {
-		resetBoardData();
-		setInterval(gameLoop, 0);
-	} else {
-		scores = [0, 0];
-		startTime = new Date();
-	}
+getBrain(function() {
+	resetBoardData();
+	setInterval(gameLoop, 0);
 });
 
 setInterval(function() {
-	socket.emit('upload_knowledge', trainingDB);
-	trainingDB.length = 0;
+	$.ajax({
+		url: '/train_and_get_brain',
+		type: 'POST',
+		data: {
+			data: JSON.stringify(trainingDB)
+		},
+		error: function(jqXHR, textStatus, errorThrown) {
+			alert('An error has occurred');
+		},
+		success: function(data) {
+			myNetwork = Network.fromJSON(JSON.parse(data));
+			trainingDB.length = 0;
+			scores = [0, 0];
+			startTime = new Date();
+		}
+	});
 }, 1000 * 60);
