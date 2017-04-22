@@ -114,14 +114,15 @@ function setUpSockets() {
 			
 			totalItemsTrained += array.length;
 			console.log('Trained on client knowledge! ' + array.length + ' items, and in total ' + totalItemsTrained);
-			
-			socket.emit('get_brain', myNetwork.toJSON());
-			console.log('Sent master brain to client!');
 		});
-		
 		
 		socket.on('disconnect', function() {
 			console.warn("User left...");
 		});
 	});
+	
+	setInterval(function() {
+		io.emit('get_brain', myNetwork.toJSON());
+		console.log('Sent master brain to everyone!');
+	}, 1000 * 60);
 }

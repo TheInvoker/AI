@@ -5,7 +5,6 @@ var map = {38: false,40: false,87: false,83: false};
 var game_board, paddle, paddles, ball; 
 var balInfo = {};
 var startTime = new Date();
-var trainingLength = 0;
 var trainingDB = [];
 
 setInterval(function() {
@@ -84,7 +83,7 @@ function drawGame() {
 	ctx.fillText(formatDate(startTime),game_board.width/2 - 70, 40);
 	ctx.fillText(scores[0] + " - " + scores[1] + " (" + (100 * (scores[1]/scores[0])).toFixed(2) + ")",game_board.width/2 - 70, 60);
 	ctx.fillText(getDateDiff(startTime, new Date()), game_board.width/2 - 70, 80);
-	ctx.fillText(trainingLength + " training size", game_board.width/2 - 70, 100);
+	ctx.fillText(trainingDB.length + " training size", game_board.width/2 - 70, 100);
 }
 
 function formatDate(date) {
@@ -128,7 +127,6 @@ function checkForWin() {
 		
 		if (balInfo.hasOwnProperty('y')) {
 			trainingDB.push([balInfo.y/game_board.height, balInfo.angle/360, ball.y/game_board.height]);
-			trainingLength += 1;
 		}
 		
 		scores[0] += 1;
@@ -195,7 +193,6 @@ function moveBall() {
 		
 		if (balInfo.hasOwnProperty('y')) {
 			trainingDB.push([balInfo.y/game_board.height, balInfo.angle/360, ball.y/game_board.height]);
-			trainingLength += 1;
 		}
 		
 		return;
