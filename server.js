@@ -77,7 +77,7 @@ function setUpServer() {
 	var app = express();
 
 	app.use(express.static(root));
-	app.use(bodyParser.urlencoded({ extended: false }))
+	app.use(bodyParser.urlencoded({ extended: false }));
 
 	app.get('/', function (req, res) {
 		var dest = 'index.html';

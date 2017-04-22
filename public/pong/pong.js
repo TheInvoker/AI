@@ -356,6 +356,7 @@ function getBrain(onSuccess) {
 	$.ajax({
 		url: '/get_brain',
 		type: 'POST',
+		timeout: 10000,
 		error: function(jqXHR, textStatus, errorThrown) {
 			alert('An error has occurred');
 		},
@@ -375,6 +376,7 @@ setInterval(function() {
 	$.ajax({
 		url: '/train_and_get_brain',
 		type: 'POST',
+		timeout: 10000,
 		data: {
 			data: JSON.stringify(trainingDB)
 		},
