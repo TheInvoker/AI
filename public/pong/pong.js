@@ -78,7 +78,6 @@ function drawGame() {
 	ctx.fillText(formatDate(startTime),game_board.width/2 - 70, 40);
 	ctx.fillText(scores[0] + " - " + scores[1] + " (" + (100 * (scores[1]/scores[0])).toFixed(2) + ")",game_board.width/2 - 70, 60);
 	ctx.fillText(getDateDiff(startTime, new Date()), game_board.width/2 - 70, 80);
-	ctx.fillText(trainingDB.length + " training size", game_board.width/2 - 70, 100);
 }
 
 function formatDate(date) {

@@ -13,6 +13,7 @@ var root = __dirname + '/public';
 
 var learningRate = .3;
 var pathToBrain = root + "/pong/brain.json";
+var pathToStats = root + "/pong/stats.json";
 var myNetwork;
 
 var Neuron = synaptic.Neuron;
@@ -59,6 +60,27 @@ fse.exists(pathToBrain, function(exists) {
 	}
 });
 
+function readStats() {
+	fse.readFile(pathToStats, function read(err, data) {
+		if (err) {
+			saveStats({'trainingSize' : 0});
+		} else {
+			saveStats(JSON.parse(data));
+		}
+	});
+}
+
+function saveStats(stats) {
+	stats.trainingSize += totalItemsTrained;
+	totalItemsTrained = 0;
+	fse.writeFile(pathToStats, JSON.stringify(stats), function(err) {
+		if(err) {
+			return console.log(err);
+		}
+		console.log("Stats was saved!");
+	});
+}
+
 function runSave() {
 	setInterval(function() {
 		var brainExtract = JSON.stringify(myNetwork.toJSON());
@@ -67,7 +89,7 @@ function runSave() {
 				return console.log(err);
 			}
 			console.log("Brain was saved!");
-		}); 
+		});
 	}, 1000 * 60);
 }
 
@@ -96,6 +118,7 @@ function setUpServer() {
 			myNetwork.propagate(learningRate, [item[2]]);
 		}
 		totalItemsTrained += array.length;
+		readStats();
 		console.log('Trained on client knowledge! ' + array.length + ' items, and in total ' + totalItemsTrained);
 		res.end(JSON.stringify(myNetwork.toJSON()));
 		console.log('Sent master brain to a client!');
