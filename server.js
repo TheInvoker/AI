@@ -119,7 +119,7 @@ function setUpServer() {
 		}
 		totalItemsTrained += array.length;
 		readStats();
-		console.log('Trained on client knowledge! ' + array.length + ' items, and in total ' + totalItemsTrained);
+		console.log('Trained on client knowledge! ' + array.length + ' items');
 		res.end(JSON.stringify(myNetwork.toJSON()));
 		console.log('Sent master brain to a client!');
 	});
