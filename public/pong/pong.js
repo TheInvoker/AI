@@ -351,29 +351,23 @@ $(document).keydown(function(e) {
 
 // SERVER
 
-function getBrain(onSuccess) {
-	$.ajax({
-		url: '/get_brain',
-		type: 'POST',
-		timeout: 10000,
-		error: function(jqXHR, textStatus, errorThrown) {
-			alert('An error has occurred');
-		},
-		success: function(data) {
-			myNetwork = Network.fromJSON(JSON.parse(data));
-			onSuccess();
-		}
-	});
-}
-
-getBrain(function() {
-	resetBoardData();
-	setInterval(gameLoop, 0);
+$.ajax({
+	url: '/get_brain',
+	type: 'GET',
+	timeout: 10000,
+	error: function(jqXHR, textStatus, errorThrown) {
+		alert('An error has occurred');
+	},
+	success: function(data) {
+		myNetwork = Network.fromJSON(JSON.parse(data));
+		resetBoardData();
+		setInterval(gameLoop, 0);
+	}
 });
 
 setInterval(function() {
 	$.ajax({
-		url: '/train_and_get_brain',
+		url: '/train',
 		type: 'POST',
 		timeout: 10000,
 		data: {
