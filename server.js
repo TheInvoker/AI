@@ -52,6 +52,7 @@ app.get('/get_brain', function (req, res) {
 			res.status(500).send('Error reading brain file');
 			console.log(err);
 		} else {
+			res.writeHead(200, {"Content-Type": "application/json"});
 			res.end(data);
 			console.log('Sent master brain to a client!');
 		}
