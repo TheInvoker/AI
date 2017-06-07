@@ -37,23 +37,20 @@ fse.exists(pathToBrain, function(exists) {
     } else {
 		console.log("Creating brain!");
 		
-		var inputLayer = new Layer(2);
-		var hiddenLayer = new Layer(3);
-		var hiddenLayer2 = new Layer(3);
+		var inputLayer = new Layer(14);
+		var hiddenLayer = new Layer(15);
 		var outputLayer = new Layer(1);
 
 		inputLayer.project(hiddenLayer);
-		hiddenLayer.project(hiddenLayer2);
-		hiddenLayer2.project(outputLayer);
+		hiddenLayer.project(outputLayer);
 
 		myNetwork = new Network({
 			input: inputLayer,
-			hidden: [hiddenLayer, hiddenLayer2],
+			hidden: [hiddenLayer],
 			output: outputLayer
 		});
 		
 		hiddenLayer.neurons().map(function(x) { x.squash = Neuron.squash.TANH; });
-		hiddenLayer2.neurons().map(function(x) { x.squash = Neuron.squash.TANH; });
 		
 		runSave();
 		setUpServer();
@@ -114,8 +111,8 @@ function setUpServer() {
 		var array = JSON.parse(data);
 		for(var i=0; i<array.length; i+=1) {
 			var item = array[i];
-			myNetwork.activate([item[0], item[1]]);
-			myNetwork.propagate(learningRate, [item[2]]);
+			myNetwork.activate(item[0]);
+			myNetwork.propagate(learningRate, item[1]);
 		}
 		totalItemsTrained += array.length;
 		readStats();

@@ -53,7 +53,6 @@ function drawGame() {
 	// clear board
 	ctx.clearRect(0,0,game_board.width,game_board.height);
 	
-	
 	// draw board
 	ctx.fillStyle = "black";
 	ctx.fillRect(0,0,game_board.width,game_board.height); 
@@ -112,15 +111,36 @@ function getDateDiff(date_now, date_future) {
 	return hours + "h " + minutes + "m " + Math.floor(seconds) + "s";
 }
 
+
+function getInput() {
+	var a = Math.floor((balInfo.y/game_board.height) * 100);
+	var b = Math.floor((balInfo.angle/360) * 100);
+	var a_s = a.toString(2);
+	var b_s = b.toString(2);
+	while (a_s.length < 7) a_s = '0' + a_s;
+	while (b_s.length < 7) b_s = '0' + b_s;
+	var ri = (a_s + b_s).split('').map(function(d) {
+		return parseInt(d, 10);
+	});
+	return ri;
+}
+function addToTrainingDB() {
+	var ri = getInput();
+	if (shouldMoveUp(ball, paddles[1], paddle)) { var ro = [1]; }
+	else { var ro = [0]; }
+	trainingDB.push([ri, ro]);
+}
+
 function checkForWin() {
-	if (ball.x + ball.radius < 0) {
+	if (ball.x + ball.radius < 0) {   // went past left side
 		scores[1] += 1;
 		console.log('Right wins!');
 		resetBoardData();
-	} else if (ball.x - ball.radius > game_board.width) {
-		
+	} else if (ball.x - ball.radius > game_board.width) {   // went past right side
+	
 		if (balInfo.hasOwnProperty('y')) {
-			trainingDB.push([balInfo.y/game_board.height, balInfo.angle/360, ball.y/game_board.height]);
+			//trainingDB.push([balInfo.y/game_board.height, balInfo.angle/360, ball.y/game_board.height]);
+			addToTrainingDB();
 		}
 		
 		scores[0] += 1;
@@ -301,35 +321,47 @@ function gameLoop() {
 
 function movePaddles() {
 	// naive left player ai
-	if (ball.y < paddles[0].y) moveLeftPlayerUp();
-	else if (ball.y > paddles[0].y + paddle.height) moveLeftPlayerDown();
-	else {
-		if (ball.y < paddles[0].y + paddle.height/2) moveLeftPlayerUp();
-		else if (ball.y > paddles[0].y + paddle.height/2) moveLeftPlayerDown();
-	}
-
+	if (shouldMoveUp(ball, paddles[0], paddle)) moveLeftPlayerUp();
+	else moveLeftPlayerDown();
+	
 	// machine learning right player ai
 	if (balInfo.hasOwnProperty('y')) {
 		var a = balInfo.y/game_board.height, b = balInfo.angle/360;
 		if (a == balInfo.a && b == balInfo.b) {
 			var predictedYPos = balInfo.predictedYPos;	
+			moveToPredicted(predictedYPos);	
 		} else {
-			var predictedYPos = myNetwork.activate([a, b]) * game_board.height;
+			var ri = getInput();
+			var ro = myNetwork.activate(ri);
+			ro = Math.round(ro[0]);
+			if (ro == 1) {
+				moveRightPlayerUp();
+			} else {
+				moveRightPlayerDown();	
+			}
 			balInfo.a = a;
 			balInfo.b = b;
 			balInfo.predictedYPos = predictedYPos;
 		}
 	} else {
 		var predictedYPos = ball.y;
-		moveToPredicted(predictedYPos);
+		moveToPredicted(predictedYPos);	
 	}
-	moveToPredicted(predictedYPos);	
 }
 
 function moveToPredicted(predictedYPos) {
 	var a = predictedYPos - paddles[1].y;
 	if (a < 0) moveRightPlayerUp();
 	else if (a > 0) moveRightPlayerDown();	
+}
+function shouldMoveUp(ball, mypaddle, paddle) {
+	if (ball.y < mypaddle.y) return true;
+	else if (ball.y > mypaddle.y + paddle.height) return false;
+	else {
+		if (ball.y < mypaddle.y + paddle.height/2) return true;
+		else if (ball.y > mypaddle.y + paddle.height/2) return false;
+		return true;
+	}
 }
 
 
