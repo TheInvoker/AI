@@ -3,7 +3,7 @@ var main_height = 300;
 var scores = [0, 0];
 var map = {38: false,40: false,87: false,83: false};
 var game_board, paddle, paddles, ball; 
-var balInfo = {};
+var ballInfo = {};
 var startTime = new Date();
 var trainingDB = [];
 
@@ -113,9 +113,9 @@ function getDateDiff(date_now, date_future) {
 
 
 function getInput() {
-	var a = Math.floor((balInfo.y/game_board.height) * 100);
-	var b = Math.floor((balInfo.angle/360) * 100);
-	var c = Math.floor((paddles[1].y/game_board.height) * 100);
+	var a = Math.floor((ballInfo.y/game_board.height) * 100);
+	var b = Math.floor((ballInfo.angle/360) * 100);
+	var c = Math.floor((ballInfo.mypaddley/game_board.height) * 100);
 	var a_s = a.toString(2);
 	var b_s = b.toString(2);
 	var c_s = c.toString(2);
@@ -129,7 +129,7 @@ function getInput() {
 }
 function addToTrainingDB() {
 	var ri = getInput();
-	if (shouldMoveUp(ball, paddles[1], paddle)) { var ro = [1]; }
+	if (shouldMoveUp(ball, ballInfo.mypaddley, paddle)) { var ro = [1]; }
 	else { var ro = [0]; }
 	trainingDB.push([ri, ro]);
 }
@@ -141,8 +141,8 @@ function checkForWin() {
 		resetBoardData();
 	} else if (ball.x - ball.radius > game_board.width) {   // went past right side
 	
-		if (balInfo.hasOwnProperty('y')) {
-			//trainingDB.push([balInfo.y/game_board.height, balInfo.angle/360, ball.y/game_board.height]);
+		if (Object.keys(ballInfo).length > 0) {
+			//trainingDB.push([ballInfo.y/game_board.height, ballInfo.angle/360, ball.y/game_board.height]);
 			addToTrainingDB();
 		}
 		
@@ -183,8 +183,9 @@ function moveBall() {
 			if (ball.angle < 0) ball.angle = 360+ball.angle;
 		}
 		
-		balInfo.y = nbally;
-		balInfo.angle = ball.angle;
+		ballInfo.y = nbally;
+		ballInfo.angle = ball.angle;
+		ballInfo.mypaddley = paddles[1].y;
 		
 		return;
 	} else if (collides ({ x:paddles[1].x, y:paddles[1].y, w:paddle.width, h:paddle.height },{ x:nballx, y:nbally, r:ball.radius }, true) && ball.angle == ball.o_angle) {  // hit right player paddle
@@ -324,11 +325,11 @@ function gameLoop() {
 
 function movePaddles() {
 	// naive left player ai
-	if (shouldMoveUp(ball, paddles[0], paddle)) moveLeftPlayerUp();
+	if (shouldMoveUp(ball, paddles[0].y, paddle)) moveLeftPlayerUp();
 	else moveLeftPlayerDown();
 	
 	// machine learning right player ai
-	if (balInfo.hasOwnProperty('y')) {
+	if (Object.keys(ballInfo).length > 0) {
 		var ri = getInput();
 		var ro = myNetwork.activate(ri);
 		ro = Math.round(ro[0]);
@@ -348,12 +349,12 @@ function moveToPredicted(predictedYPos) {
 	if (a < 0) moveRightPlayerUp();
 	else if (a > 0) moveRightPlayerDown();	
 }
-function shouldMoveUp(ball, mypaddle, paddle) {
-	if (ball.y < mypaddle.y) return true;
-	else if (ball.y > mypaddle.y + paddle.height) return false;
+function shouldMoveUp(ball, mypaddley, paddle) {
+	if (ball.y < mypaddley) return true;
+	else if (ball.y > mypaddley + paddle.height) return false;
 	else {
-		if (ball.y < mypaddle.y + paddle.height/2) return true;
-		else if (ball.y > mypaddle.y + paddle.height/2) return false;
+		if (ball.y < mypaddley + paddle.height/2) return true;
+		else if (ball.y > mypaddley + paddle.height/2) return false;
 		return true;
 	}
 }
