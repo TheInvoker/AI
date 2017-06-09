@@ -33,12 +33,13 @@ fse.exists(pathToBrain, function(exists) {
 			
 			runSave();
 			setUpServer();
+			runStats();
 		});
     } else {
 		console.log("Creating brain!");
 		
-		var inputLayer = new Layer(14);
-		var hiddenLayer = new Layer(15);
+		var inputLayer = new Layer(21);
+		var hiddenLayer = new Layer(22);
 		var outputLayer = new Layer(1);
 
 		inputLayer.project(hiddenLayer);
@@ -54,14 +55,44 @@ fse.exists(pathToBrain, function(exists) {
 		
 		runSave();
 		setUpServer();
+		runStats();
 	}
 });
+
+
+
+// SAVE BRAIN
+
+function runSave() {
+	setInterval(function() {
+		var brainExtract = JSON.stringify(myNetwork.toJSON());
+		fse.writeFile(pathToBrain, brainExtract, function(err) {
+			if(err) {
+				return console.log(err);
+			}
+			console.log("Brain was saved!");
+		});
+	}, 1000 * 60);
+}
+
+
+
+
+
+
+// SAVE STATS
+
+function runStats() {
+	setInterval(readStats, 1000 * 60);
+}
 
 function readStats() {
 	fse.readFile(pathToStats, function read(err, data) {
 		if (err) {
 			saveStats({'trainingSize' : 0});
 		} else {
+			data = data.toString();
+			console.log(data);
 			saveStats(JSON.parse(data));
 		}
 	});
@@ -78,17 +109,12 @@ function saveStats(stats) {
 	});
 }
 
-function runSave() {
-	setInterval(function() {
-		var brainExtract = JSON.stringify(myNetwork.toJSON());
-		fse.writeFile(pathToBrain, brainExtract, function(err) {
-			if(err) {
-				return console.log(err);
-			}
-			console.log("Brain was saved!");
-		});
-	}, 1000 * 60);
-}
+
+
+
+
+
+
 
 // SET UP SERVER
 
@@ -115,7 +141,6 @@ function setUpServer() {
 			myNetwork.propagate(learningRate, item[1]);
 		}
 		totalItemsTrained += array.length;
-		readStats();
 		console.log('Trained on client knowledge! ' + array.length + ' items');
 		res.end(JSON.stringify(myNetwork.toJSON()));
 		console.log('Sent master brain to a client!');

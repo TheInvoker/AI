@@ -115,11 +115,14 @@ function getDateDiff(date_now, date_future) {
 function getInput() {
 	var a = Math.floor((balInfo.y/game_board.height) * 100);
 	var b = Math.floor((balInfo.angle/360) * 100);
+	var c = Math.floor((paddles[1].y/game_board.height) * 100);
 	var a_s = a.toString(2);
 	var b_s = b.toString(2);
+	var c_s = c.toString(2);
 	while (a_s.length < 7) a_s = '0' + a_s;
 	while (b_s.length < 7) b_s = '0' + b_s;
-	var ri = (a_s + b_s).split('').map(function(d) {
+	while (c_s.length < 7) c_s = '0' + c_s;
+	var ri = (a_s + b_s + c_s).split('').map(function(d) {
 		return parseInt(d, 10);
 	});
 	return ri;
@@ -387,13 +390,15 @@ function getBrain(onSuccess) {
 	$.ajax({
 		url: '/get_brain',
 		type: 'POST',
-		timeout: 10000,
 		error: function(jqXHR, textStatus, errorThrown) {
 			alert('An error has occurred');
 		},
 		success: function(data) {
 			myNetwork = Network.fromJSON(JSON.parse(data));
 			onSuccess();
+		},
+		complete: function() {
+			sendAndTrain();
 		}
 	});
 }
@@ -403,11 +408,10 @@ getBrain(function() {
 	setInterval(gameLoop, 0);
 });
 
-setInterval(function() {
+function sendAndTrain() {
 	$.ajax({
 		url: '/train_and_get_brain',
 		type: 'POST',
-		timeout: 10000,
 		data: {
 			data: JSON.stringify(trainingDB)
 		},
@@ -419,6 +423,9 @@ setInterval(function() {
 			trainingDB.length = 0;
 			scores = [0, 0];
 			startTime = new Date();
+		},
+		complete: function() {
+			setInterval(sendAndTrain, 30 * 1000);
 		}
 	});
-}, 1000 * 60);
+}
