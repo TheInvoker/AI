@@ -398,7 +398,7 @@ function getBrain(onSuccess) {
 			onSuccess();
 		},
 		complete: function() {
-			sendAndTrain();
+			setInterval(sendAndTrain, 30 * 1000);
 		}
 	});
 }
@@ -416,7 +416,7 @@ function sendAndTrain() {
 			data: JSON.stringify(trainingDB)
 		},
 		error: function(jqXHR, textStatus, errorThrown) {
-			alert('An error has occurred');
+			//alert('An error has occurred');
 		},
 		success: function(data) {
 			myNetwork = Network.fromJSON(JSON.parse(data));

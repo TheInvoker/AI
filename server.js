@@ -4,6 +4,7 @@ var fse = require("fs-extra");
 var synaptic = require('synaptic');
 var bodyParser = require('body-parser');
 
+
 // INFO
 
 var totalItemsTrained = 0;
