@@ -386,7 +386,7 @@ $(document).keydown(function(e) {
 
 // SERVER
 
-function getBrain(onSuccess) {
+function getBrain() {
 	$.ajax({
 		url: '/get_brain',
 		type: 'POST',
@@ -395,18 +395,14 @@ function getBrain(onSuccess) {
 		},
 		success: function(data) {
 			myNetwork = Network.fromJSON(JSON.parse(data));
-			onSuccess();
-		},
-		complete: function() {
-			setInterval(sendAndTrain, 30 * 1000);
+			resetBoardData();
+			setInterval(gameLoop, 0);
+			setTimeout(sendAndTrain, 30 * 1000);
 		}
 	});
 }
 
-getBrain(function() {
-	resetBoardData();
-	setInterval(gameLoop, 0);
-});
+getBrain();
 
 function sendAndTrain() {
 	$.ajax({
@@ -416,16 +412,14 @@ function sendAndTrain() {
 			data: JSON.stringify(trainingDB)
 		},
 		error: function(jqXHR, textStatus, errorThrown) {
-			//alert('An error has occurred');
+			alert('An error has occurred');
 		},
 		success: function(data) {
 			myNetwork = Network.fromJSON(JSON.parse(data));
 			trainingDB.length = 0;
 			scores = [0, 0];
 			startTime = new Date();
-		},
-		complete: function() {
-			setInterval(sendAndTrain, 30 * 1000);
+			setTimeout(sendAndTrain, 30 * 1000);
 		}
 	});
 }
