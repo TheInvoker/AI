@@ -112,10 +112,10 @@ function getDateDiff(date_now, date_future) {
 }
 
 
-function getInput() {
+function getInput(paddle_y) {
 	var a = Math.floor((ballInfo.y/game_board.height) * 100);
 	var b = Math.floor((ballInfo.angle/360) * 100);
-	var c = Math.floor((ballInfo.mypaddley/game_board.height) * 100);
+	var c = Math.floor((paddle_y/game_board.height) * 100);
 	var a_s = a.toString(2);
 	var b_s = b.toString(2);
 	var c_s = c.toString(2);
@@ -128,7 +128,7 @@ function getInput() {
 	return ri;
 }
 function addToTrainingDB() {
-	var ri = getInput();
+	var ri = getInput(ballInfo.mypaddley);
 	if (shouldMoveUp(ball, ballInfo.mypaddley, paddle)) { var ro = [1]; }
 	else { var ro = [0]; }
 	trainingDB.push([ri, ro]);
@@ -330,7 +330,7 @@ function movePaddles() {
 	
 	// machine learning right player ai
 	if (Object.keys(ballInfo).length > 0) {
-		var ri = getInput();
+		var ri = getInput(paddles[1].y);
 		var ro = myNetwork.activate(ri);
 		ro = Math.round(ro[0]);
 		if (ro == 1) {
