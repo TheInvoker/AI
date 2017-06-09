@@ -329,22 +329,13 @@ function movePaddles() {
 	
 	// machine learning right player ai
 	if (balInfo.hasOwnProperty('y')) {
-		var a = balInfo.y/game_board.height, b = balInfo.angle/360;
-		if (a == balInfo.a && b == balInfo.b) {
-			var predictedYPos = balInfo.predictedYPos;	
-			moveToPredicted(predictedYPos);	
+		var ri = getInput();
+		var ro = myNetwork.activate(ri);
+		ro = Math.round(ro[0]);
+		if (ro == 1) {
+			moveRightPlayerUp();
 		} else {
-			var ri = getInput();
-			var ro = myNetwork.activate(ri);
-			ro = Math.round(ro[0]);
-			if (ro == 1) {
-				moveRightPlayerUp();
-			} else {
-				moveRightPlayerDown();	
-			}
-			balInfo.a = a;
-			balInfo.b = b;
-			balInfo.predictedYPos = predictedYPos;
+			moveRightPlayerDown();	
 		}
 	} else {
 		var predictedYPos = ball.y;
